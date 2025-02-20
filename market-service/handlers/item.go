@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"crud/models"
-	"crud/services"
+	"crud/market-service/models"
+	"crud/market-service/services"
 	"encoding/json"
 	"net/http"
 	"strconv"

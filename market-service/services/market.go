@@ -1,8 +1,8 @@
 package services
 
 import (
-	"crud/models"
-	"crud/repos"
+	"crud/market-service/models"
+	"crud/market-service/repos"
 )
 
 type MarketService struct {

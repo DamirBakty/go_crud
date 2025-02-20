@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"crud/models"
+	"crud/market-service/models"
 	"database/sql"
 )
 

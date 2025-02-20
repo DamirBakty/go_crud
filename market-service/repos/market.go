@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"crud/models"
+	models2 "crud/market-service/models"
 	_ "database/sql"
 )
 
@@ -13,7 +13,7 @@ func NewMarketRepo(db *PostgresDB) *MarketRepo {
 	return &MarketRepo{db: db}
 }
 
-func (r *MarketRepo) Create(market models.MarketEdit) (int, error) {
+func (r *MarketRepo) Create(market models2.MarketEdit) (int, error) {
 	var id int
 	err := r.db.db.QueryRow(
 		"INSERT INTO markets (name, address, phone_number) VALUES ($1, $2, $3) RETURNING id",
@@ -35,8 +35,8 @@ func (r *MarketRepo) Create(market models.MarketEdit) (int, error) {
 	return id, nil
 }
 
-func (r *MarketRepo) Get(id int) (*models.MarketView, error) {
-	market := &models.MarketView{}
+func (r *MarketRepo) Get(id int) (*models2.MarketView, error) {
+	market := &models2.MarketView{}
 	err := r.db.db.QueryRow(
 		"SELECT name, address, phone_number FROM markets WHERE id = $1",
 		id,
@@ -58,7 +58,7 @@ func (r *MarketRepo) Get(id int) (*models.MarketView, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var item models.ItemEdit
+		var item models2.ItemEdit
 		if err := rows.Scan(&item.Name, &item.Count, &item.Price); err != nil {
 			return nil, err
 		}
@@ -67,7 +67,7 @@ func (r *MarketRepo) Get(id int) (*models.MarketView, error) {
 	return market, nil
 }
 
-func (r *MarketRepo) Update(id int, market models.MarketEdit) error {
+func (r *MarketRepo) Update(id int, market models2.MarketEdit) error {
 	tx, err := r.db.db.Begin()
 	if err != nil {
 		return err

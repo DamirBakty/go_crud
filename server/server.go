@@ -1,21 +1,31 @@
 package server
 
 import (
-	"crud/handlers"
-	"crud/repos"
-	"crud/services"
+	"crud/config"
+	markethandlers "crud/market-service/handlers"
+	marketrepos "crud/market-service/repos"
+	marketservices "crud/market-service/services"
+	"fmt"
 	"log"
 	"net/http"
 )
 
 func Run() {
-	db, err := repos.NewPostgresDB("postgres://test_user:test_password@localhost:5432/test_market?sslmode=disable")
-	marketRepo := repos.NewMarketRepo(db)
-	marketService := services.NewMarketService(marketRepo)
-	marketHandler := handlers.NewMarketHandler(marketService)
-	itemRepo := repos.NewItemRepo(db)
-	itemService := services.NewItemService(itemRepo)
-	itemHandler := handlers.NewItemHandler(itemService)
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	dbUrl := cfg.DbUrl
+	fmt.Println(dbUrl)
+	db, err := marketrepos.NewPostgresDB(dbUrl)
+
+	marketRepo := marketrepos.NewMarketRepo(db)
+	marketService := marketservices.NewMarketService(marketRepo)
+	marketHandler := markethandlers.NewMarketHandler(marketService)
+	itemRepo := marketrepos.NewItemRepo(db)
+	itemService := marketservices.NewItemService(itemRepo)
+	itemHandler := markethandlers.NewItemHandler(itemService)
 	if err != nil {
 		log.Fatal(err)
 	}

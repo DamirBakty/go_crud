@@ -1,7 +1,10 @@
 package main
 
-import "crud/server"
+import (
+	"crud/server"
+)
 
 func main() {
+
 	server.Run()
 }
