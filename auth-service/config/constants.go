@@ -2,7 +2,6 @@ package config
 
 import (
 	"database/sql"
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"

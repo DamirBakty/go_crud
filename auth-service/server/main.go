@@ -16,22 +16,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
-	dbUrl := cfg.DbUrl
-	fmt.Println(dbUrl)
-
-	db, err := userrepos.NewPostgresDB(dbUrl)
-
-	appConfig := config.AppConfig{
-		DB: db,
-	}
+	fmt.Println("Database URL:", cfg.DbUrl)
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
+	// Initialize user repository using the database connection from config
+	userRepo := userrepos.NewUserRepository(cfg.DB)
+
 	s := grpc.NewServer()
-	authpb.RegisterAuthServiceServer(s, &services.AuthServer{})
+	authpb.RegisterAuthServiceServer(s, &services.AuthServer{
+		Config:   *cfg,
+		UserRepo: userRepo,
+	})
 
 	log.Println("Auth service is running on port 50051...")
 	if err := s.Serve(listener); err != nil {
