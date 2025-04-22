@@ -15,6 +15,7 @@ var (
 
 type User struct {
 	ID       string
+	Username string
 	Email    string
 	Password string
 }
@@ -27,8 +28,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) CreateUser(email, password string) (*User, error) {
-	// Check if user with this email already exists
+func (r *UserRepository) CreateUser(username, email, password string) (*User, error) {
 	var count int
 	err := r.db.QueryRow("SELECT COUNT(*) FROM users WHERE email = $1", email).Scan(&count)
 	if err != nil {
@@ -38,16 +38,14 @@ func (r *UserRepository) CreateUser(email, password string) (*User, error) {
 		return nil, ErrEmailAlreadyExists
 	}
 
-	// Hash the password
 	hasher := sha256.New()
 	hasher.Write([]byte(password))
 	hashedPassword := hex.EncodeToString(hasher.Sum(nil))
 
-	// Insert the new user
 	var id string
 	err = r.db.QueryRow(
-		"INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id",
-		email, string(hashedPassword),
+		"INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id",
+		username, email, string(hashedPassword),
 	).Scan(&id)
 	if err != nil {
 		return nil, err
@@ -55,6 +53,7 @@ func (r *UserRepository) CreateUser(email, password string) (*User, error) {
 
 	return &User{
 		ID:       id,
+		Username: username,
 		Email:    email,
 		Password: string(hashedPassword),
 	}, nil
@@ -63,9 +62,9 @@ func (r *UserRepository) CreateUser(email, password string) (*User, error) {
 func (r *UserRepository) GetUserByEmail(email string) (*User, error) {
 	var user User
 	err := r.db.QueryRow(
-		"SELECT id, email, password FROM users WHERE email = $1",
+		"SELECT id, username, email, password FROM users WHERE email = $1",
 		email,
-	).Scan(&user.ID, &user.Email, &user.Password)
+	).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
@@ -81,7 +80,6 @@ func (r *UserRepository) ValidateCredentials(email, password string) (*User, err
 		return nil, err
 	}
 
-	// Hash the provided password and compare with stored hash
 	hasher := sha256.New()
 	hasher.Write([]byte(password))
 	hashedPassword := hex.EncodeToString(hasher.Sum(nil))

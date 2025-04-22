@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package blog;
+
+option go_package = "blogpb";
+
+service BlogService {
+  // Blog operations
+  rpc CreateBlog(CreateBlogRequest) returns (BlogResponse);
+  rpc GetBlog(GetBlogRequest) returns (BlogResponse);
+  rpc UpdateBlog(UpdateBlogRequest) returns (BlogResponse);
+  rpc DeleteBlog(DeleteBlogRequest) returns (DeleteBlogResponse);
+  rpc ListBlogs(ListBlogsRequest) returns (ListBlogsResponse);
+
+  // Comment operations
+  rpc CreateComment(CreateCommentRequest) returns (CommentResponse);
+  rpc GetComment(GetCommentRequest) returns (CommentResponse);
+  rpc UpdateComment(UpdateCommentRequest) returns (CommentResponse);
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
+  rpc ListComments(ListCommentsRequest) returns (ListCommentsResponse);
+
+  // Like operations
+  rpc CreateLike(CreateLikeRequest) returns (LikeResponse);
+  rpc DeleteLike(DeleteLikeRequest) returns (DeleteLikeResponse);
+  rpc ListLikes(ListLikesRequest) returns (ListLikesResponse);
+  rpc CheckLike(CheckLikeRequest) returns (CheckLikeResponse);
+}
+
+message Blog {
+  string id = 1;
+  string user_id = 2;
+  string title = 3;
+  string text = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message CreateBlogRequest {
+  string user_id = 1;
+  string title = 2;
+  string text = 3;
+}
+
+message GetBlogRequest {
+  string id = 1;
+}
+
+message UpdateBlogRequest {
+  string id = 1;
+  string title = 2;
+  string text = 3;
+}
+
+message DeleteBlogRequest {
+  string id = 1;
+}
+
+message DeleteBlogResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message BlogResponse {
+  bool error = 1;
+  string message = 2;
+  Blog blog = 3;
+}
+
+message ListBlogsRequest {
+  string user_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message ListBlogsResponse {
+  bool error = 1;
+  string message = 2;
+  repeated Blog blogs = 3;
+  int32 total = 4;
+}
+
+message Comment {
+  string id = 1;
+  string blog_id = 2;
+  string user_id = 3;
+  string content = 4;
+  string created_at = 5;
+}
+
+message CreateCommentRequest {
+  string blog_id = 1;
+  string user_id = 2;
+  string content = 3;
+}
+
+message GetCommentRequest {
+  string id = 1;
+}
+
+message UpdateCommentRequest {
+  string id = 1;
+  string content = 2;
+}
+
+message DeleteCommentRequest {
+  string id = 1;
+}
+
+message DeleteCommentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message CommentResponse {
+  bool error = 1;
+  string message = 2;
+  Comment comment = 3;
+}
+
+message ListCommentsRequest {
+  string blog_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message ListCommentsResponse {
+  bool error = 1;
+  string message = 2;
+  repeated Comment comments = 3;
+  int32 total = 4;
+}
+
+message Like {
+  string id = 1;
+  string blog_id = 2;
+  string user_id = 3;
+  string created_at = 4;
+}
+
+message CreateLikeRequest {
+  string blog_id = 1;
+  string user_id = 2;
+}
+
+message DeleteLikeRequest {
+  string blog_id = 1;
+  string user_id = 2;
+}
+
+message DeleteLikeResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message LikeResponse {
+  bool error = 1;
+  string message = 2;
+  Like like = 3;
+}
+
+message ListLikesRequest {
+  string blog_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message ListLikesResponse {
+  bool error = 1;
+  string message = 2;
+  repeated Like likes = 3;
+  int32 total = 4;
+}
+
+message CheckLikeRequest {
+  string blog_id = 1;
+  string user_id = 2;
+}
+
+message CheckLikeResponse {
+  bool liked = 1;
+}

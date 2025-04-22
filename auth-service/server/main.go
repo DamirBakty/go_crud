@@ -23,7 +23,6 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	// Initialize user repository using the database connection from config
 	userRepo := userrepos.NewUserRepository(cfg.DB)
 
 	s := grpc.NewServer()

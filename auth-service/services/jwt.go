@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-// TokenType represents the type of JWT token
 type TokenType string
 
 const (
@@ -19,14 +18,13 @@ const (
 	RefreshToken TokenType = "refresh"
 )
 
-// Claims represents the JWT claims
 type Claims struct {
-	Email string `json:"email"`
-	Type  string `json:"type"`
+	UserID string `json:"user_id"`
+	Email  string `json:"email"`
+	Type   string `json:"type"`
 	jwt.RegisteredClaims
 }
 
-// Secret keys for JWT signing
 var (
 	accessSecretKey  = []byte(os.Getenv("JWT_ACCESS_SECRET"))
 	refreshSecretKey = []byte(os.Getenv("JWT_REFRESH_SECRET"))
@@ -41,20 +39,18 @@ type AuthServer struct {
 func (s *AuthServer) Register(ctx context.Context, req *authpb.RegisterRequest) (*authpb.AuthResponse, error) {
 	log.Printf("Register: %s, %s", req.Username, req.Email)
 
-	// Create user in the database
-	user, err := s.UserRepo.CreateUser(req.Email, req.Password)
+	user, err := s.UserRepo.CreateUser(req.Username, req.Email, req.Password)
 	if err != nil {
 		log.Printf("Failed to create user: %v", err)
 		return nil, err
 	}
 
-	// Generate tokens
-	accessToken, err := generateToken(user.Email, AccessToken, 24*time.Hour)
+	accessToken, err := generateToken(user.ID, user.Email, AccessToken, 24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := generateToken(user.Email, RefreshToken, 7*24*time.Hour)
+	refreshToken, err := generateToken(user.ID, user.Email, RefreshToken, 7*24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
@@ -69,20 +65,18 @@ func (s *AuthServer) Register(ctx context.Context, req *authpb.RegisterRequest) 
 func (s *AuthServer) Login(ctx context.Context, req *authpb.LoginRequest) (*authpb.AuthResponse, error) {
 	log.Printf("Login: %s", req.Email)
 
-	// Validate user credentials
 	user, err := s.UserRepo.ValidateCredentials(req.Email, req.Password)
 	if err != nil {
 		log.Printf("Failed to validate credentials: %v", err)
 		return nil, err
 	}
 
-	// Generate tokens
-	accessToken, err := generateToken(user.Email, AccessToken, 24*time.Hour)
+	accessToken, err := generateToken(user.ID, user.Email, AccessToken, 24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := generateToken(user.Email, RefreshToken, 7*24*time.Hour)
+	refreshToken, err := generateToken(user.ID, user.Email, RefreshToken, 7*24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
@@ -94,11 +88,11 @@ func (s *AuthServer) Login(ctx context.Context, req *authpb.LoginRequest) (*auth
 	}, nil
 }
 
-// generateToken creates a new JWT token
-func generateToken(email string, tokenType TokenType, duration time.Duration) (string, error) {
+func generateToken(userID string, email string, tokenType TokenType, duration time.Duration) (string, error) {
 	claims := &Claims{
-		Email: email,
-		Type:  string(tokenType),
+		UserID: userID,
+		Email:  email,
+		Type:   string(tokenType),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -130,6 +124,7 @@ func (s *AuthServer) VerifyToken(ctx context.Context, req *authpb.VerifyTokenReq
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return &authpb.VerifyTokenResponse{
 			Valid:    true,
+			UserId:   claims.UserID,
 			Username: claims.Email,
 		}, nil
 	}
